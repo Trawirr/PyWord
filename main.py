@@ -40,8 +40,21 @@ def window():
     sys.exit(app.exec_())
 
 
-window()
+def analyse_words():
+    file = open('valid-wordle-words.txt', 'r')
+    words = [word.replace('\n', '') for word in file.readlines()]
+    file.close()
+    letters = {}
+    for word in words:
+        for l in word:
+            letters[l] = letters[l] + 1 if l in letters else 1
+    for key in letters.keys():
+        print(f'{key}: {letters[key]}')
 
+import time
+start = time.time()
+analyse_words()
+print(f'time: {round(time.time()-start,4)}s')
 # file = open('valid-wordle-words.txt', 'r')
 # words = file.readlines()
 # file.close()
