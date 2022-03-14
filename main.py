@@ -96,10 +96,10 @@ def analyse_words(words=None):
         file.close()
     letters = {}
     for word in words:
-        for l in word:
+        for l in set(word):
             letters[l] = letters[l] + 1 if l in letters else 1
-    for key in letters.keys():
-        print(f'{key}: {letters[key]}')
+    # for key in letters.keys():
+    #     print(f'{key}: {letters[key]}')
     return letters
 
 
@@ -126,17 +126,21 @@ def satisfy_constraints(word, constraints):
     return True
 
 
-def find_best_word(words, constraints):
-    letters = analyse_words(words)
+def find_best_word(words, words2, constraints):
+    letters = analyse_words(words2)
     best = ['', 0]
     for w in words:
         goodness = 0
         for l in set(w):
+            #print(l)
             if l not in constraints:
-                goodness += letters[l]
+                goodness += letters[l] if l in letters.keys() else 0
+            #else:
+                #print(f'---{l}')
         if goodness > best[1]:
             best = [w, goodness]
-    print(best)
+    print(f'Best word: {best[0]}')
+    return best[0]
 
     
 def print_constraints(constraints):
@@ -148,27 +152,45 @@ def print_constraints(constraints):
             constraints_types[1].append(c[0])
         else:
             constraints_types[0].append(f'{c[0]}{c[1]}')
-    print(f'Found precisely: {constraints_types[0]}\n'
-          f'Found: {constraints_types[1]}\n'
-          f'Banned: {constraints_types[2]}')
+    print(f'Found precisely {len(constraints_types[0])}: {constraints_types[0]}\n'
+          f'Found {len(constraints_types[1])}: {constraints_types[1]}\n'
+          f'Banned {len(constraints_types[2])}: {constraints_types[2]}\n'
+          f'constraints: {constraints}')
 
 
-def solve_wordle():
+def solve_wordle(secret=None, auto=True):
     file = open('valid-wordle-words.txt', 'r')
     words = [word.replace('\n', '') for word in file.readlines()]
+    all_words = words.copy()
     file.close()
     constraints = ''
     for i in range(6):
-        find_best_word(words, constraints)
-        word = input('Guess the word: ')
-        new_constraints = input('Constraints: ')
-        for j in range(5):
-            constraints += word[j]+new_constraints[j]
-        words = [w for w in words if satisfy_constraints(w, constraints)]
-        for w in words:
-            print(w)
-        print(f'{len(words)} words')
         print_constraints(constraints)
+        word = find_best_word(all_words, words, constraints)
+        if not auto:
+            word = input('Guess the word: ')
+        if secret is None:
+            new_constraints = input('Constraints: ')
+            for j in range(5):
+                constraints += word[j]+new_constraints[j]
+        else:
+            print(f'word {word}, secret {secret}')
+            for j in range(5):
+                if word[j] == secret[j]:
+                    constraints += f'{word[j]}{j + 1}'
+                elif word[j] in secret:
+                    constraints += f'{word[j]}?'
+                else:
+                    constraints += f'{word[j]}0'
+        words = [w for w in words if satisfy_constraints(w, constraints)]
+        if len(words) == 1:
+            print(f'Wordle solved in {i+1} moves, the word is:', words[0])
+            return word[0]
+        #for w in words:
+            #print(w)
+        print(f'{len(words)} words')
+        print(f'possible words: {words}')
+
 # start = time.time()
 # analyse_words()
 # print(f'time: {round(time.time()-start,4)}s')
@@ -185,7 +207,7 @@ def solve_wordle():
 # analyse_words(words2)
 
 #window()
-solve_wordle()
+solve_wordle(auto=False)
 
 # file = open('valid-wordle-words.txt', 'r')
 # words = file.readlines()
