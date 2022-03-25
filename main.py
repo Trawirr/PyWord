@@ -95,11 +95,19 @@ def analyse_words(words=None):
         words = [word.replace('\n', '') for word in file.readlines()]
         file.close()
     letters = {}
+    positions = {}
+    a = [0,0,0,0,0]
     for word in words:
-        for l in set(word):
-            letters[l] = letters[l] + 1 if l in letters else 1
+        for i, l in enumerate(word):
+            if l == 'a':
+                a[i] += 1
+            if l not in letters:
+                letters[l] = np.zeros(5)
+            letters[l][i] += 1
+            #letters[l] = letters[l] + 1 if l in letters else np.array
     # for key in letters.keys():
     #     print(f'{key}: {letters[key]}')
+    print('test a =', a)
     return letters
 
 
@@ -128,17 +136,18 @@ def satisfy_constraints(word, constraints):
 
 def find_best_word(words, words2, constraints):
     letters = analyse_words(words2)
-    best = ['', 0]
-    for w in words:
+    best = ['', -1]
+    for word in words:
         goodness = 0
-        for l in set(w):
-            #print(l)
-            if l not in constraints:
-                goodness += letters[l] if l in letters.keys() else 0
+        #print(f'Word: {word}')
+        for i, l in enumerate(word):
+            #print(f'{i}. {l}')
+            goodness += letters[l][i] if l in letters.keys() else 0
             #else:
                 #print(f'---{l}')
+        #print(f'{word}: {goodness}')
         if goodness > best[1]:
-            best = [w, goodness]
+            best = [word, goodness]
     print(f'Best word: {best[0]}')
     return best[0]
 
@@ -207,7 +216,6 @@ def solve_wordle(secret=None, auto=True):
 # analyse_words(words2)
 
 #window()
-solve_wordle(auto=False)
 
 # file = open('valid-wordle-words.txt', 'r')
 # words = file.readlines()
@@ -215,3 +223,10 @@ solve_wordle(auto=False)
 # random_word = words[np.random.randint(len(words))]
 # print(random_word)
 # window(random_word)
+
+# with open('valid-wordle-words.txt', 'r') as f:
+#     words = [word.replace('\n', '') for word in f.readlines()]
+# for i in range(10):
+#     print(analyse_words(words)['a'])
+
+solve_wordle(auto=False)
